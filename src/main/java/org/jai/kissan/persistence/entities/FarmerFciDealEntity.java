@@ -1,4 +1,4 @@
-package org.jai.kissan.model;
+package org.jai.kissan.persistence.entities;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @NoArgsConstructor
-public class FarmerFCIDeal {
+public class FarmerFciDealEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fci_deal_seq")
@@ -27,7 +27,7 @@ public class FarmerFCIDeal {
             parameters = {
                     @Parameter(name = StringPrefixedSequenceIdGenerator.INCREMENT_PARAM, value = "1"),
                     @Parameter(name = StringPrefixedSequenceIdGenerator.VALUE_PREFIX_PARAMETER, value = "FCI_"),
-                    @Parameter(name = StringPrefixedSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%09d") })
+                    @Parameter(name = StringPrefixedSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%09d")})
     private String dealIdentityCode;
 
     private LocalDateTime dealCreatingDate;

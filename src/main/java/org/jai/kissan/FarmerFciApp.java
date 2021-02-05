@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FarmerFCIApp {
+public class FarmerFciApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FarmerFCIApp.class, args);
+		SpringApplication.run(FarmerFciApp.class, args);
 	}
 
 }
