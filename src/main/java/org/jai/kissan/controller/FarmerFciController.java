@@ -14,47 +14,47 @@ import java.util.List;
 @RestController
 public class FarmerFciController implements IFarmerFciController {
 
-    private FarmerFciService farmerFCIService;
+    private FarmerFciService farmerFciService;
 
     @Autowired
-    public FarmerFciController(FarmerFciService farmerFCIService) {
-        this.farmerFCIService = farmerFCIService;
+    public FarmerFciController(FarmerFciService farmerFciService) {
+        this.farmerFciService = farmerFciService;
     }
 
     @Override
     public String createDeal(@RequestBody FarmerFciDeal farmerFciDeal) {
-        return farmerFCIService.createDeal(farmerFciDeal);
+        return farmerFciService.createDeal(farmerFciDeal);
     }
 
     @Override
     public void buyDeal(@RequestParam String dealCode, @RequestParam Double buyingRate) {
-        farmerFCIService.buyDeal(dealCode, buyingRate);
+        farmerFciService.buyDeal(dealCode, buyingRate);
     }
 
     @Override
     public void updateQuantityInDeal(@RequestParam String dealCode, @RequestParam Double quantity) {
-        farmerFCIService.updateQuantityInDeal(dealCode, quantity);
+        farmerFciService.updateQuantityInDeal(dealCode, quantity);
     }
 
     @Override
     public void updateStatusToReview(@RequestParam String dealCode) {
 
         //ToDo : Send a notification to farmer
-        farmerFCIService.updateDealStatusToReview(dealCode);
+        farmerFciService.updateDealStatusToReview(dealCode);
     }
 
     @Override
     public List<FarmerFciDeal> listAllNewDeals() {
-        return farmerFCIService.listAllNewDeals();
+        return farmerFciService.listAllNewDeals();
     }
 
     @Override
     public List<FarmerFciDeal> listAllReviewingDeals() {
-        return farmerFCIService.listAllReviewingDeals();
+        return farmerFciService.listAllReviewingDeals();
     }
 
     @Override
     public List<FarmerFciDeal> getFCIActiveDealFromFarmerCode(@PathVariable String farmerIdentityCode) {
-        return farmerFCIService.listActiveDealsByFarmerCode(farmerIdentityCode);
+        return farmerFciService.listActiveDealsByFarmerCode(farmerIdentityCode);
     }
 }
