@@ -1,5 +1,7 @@
 package org.jai.kissan.controller;
 
+import java.util.List;
+
 import org.jai.kissan.api.farmer.fci.controller.IFarmerFciController;
 import org.jai.kissan.api.farmer.fci.model.FarmerFciDeal;
 import org.jai.kissan.service.FarmerFciService;
@@ -9,52 +11,71 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 public class FarmerFciController implements IFarmerFciController {
 
-    private FarmerFciService farmerFciService;
+	private FarmerFciService farmerFciService;
 
-    @Autowired
-    public FarmerFciController(FarmerFciService farmerFciService) {
-        this.farmerFciService = farmerFciService;
-    }
+	@Autowired
+	public FarmerFciController(FarmerFciService farmerFciService) {
+		this.farmerFciService = farmerFciService;
+	}
 
-    @Override
-    public String createDeal(@RequestBody FarmerFciDeal farmerFciDeal) {
-        return farmerFciService.createDeal(farmerFciDeal);
-    }
+	@Override
+	public String createDeal(@RequestBody FarmerFciDeal farmerFciDeal) {
+		return farmerFciService.createDeal(farmerFciDeal);
+	}
 
-    @Override
-    public void buyDeal(@RequestParam String dealCode, @RequestParam Double buyingRate) {
-        farmerFciService.buyDeal(dealCode, buyingRate);
-    }
+	@Override
+	public void buyDeal(@RequestParam String dealCode, @RequestParam Double buyingRate) {
+		farmerFciService.buyDeal(dealCode, buyingRate);
+	}
 
-    @Override
-    public void updateQuantityInDeal(@RequestParam String dealCode, @RequestParam Double quantity) {
-        farmerFciService.updateQuantityInDeal(dealCode, quantity);
-    }
+	@Override
+	public void updateQuantityInDeal(@RequestParam String dealCode, @RequestParam Double quantity) {
+		farmerFciService.updateQuantityInDeal(dealCode, quantity);
+	}
 
-    @Override
-    public void updateStatusToReview(@RequestParam String dealCode) {
+	@Override
+	public void updateStatusToReview(@RequestParam String dealCode) {
 
-        //ToDo : Send a notification to farmer
-        farmerFciService.updateDealStatusToReview(dealCode);
-    }
+		// ToDo : Send a notification to farmer
+		farmerFciService.updateDealStatusToReview(dealCode);
+	}
 
-    @Override
-    public List<FarmerFciDeal> listAllNewDeals() {
-        return farmerFciService.listAllNewDeals();
-    }
+	@Override
+	public List<FarmerFciDeal> listAllNewDeals() {
+		return farmerFciService.listAllNewDeals();
+	}
 
-    @Override
-    public List<FarmerFciDeal> listAllReviewingDeals() {
-        return farmerFciService.listAllReviewingDeals();
-    }
+	@Override
+	public List<FarmerFciDeal> listFarmerNewDeals(String farmerIdentityCode) {
+		return null;
+	}
 
-    @Override
-    public List<FarmerFciDeal> getFCIActiveDealFromFarmerCode(@PathVariable String farmerIdentityCode) {
-        return farmerFciService.listActiveDealsByFarmerCode(farmerIdentityCode);
-    }
+	@Override
+	public List<FarmerFciDeal> listAllReviewingDeals() {
+		return farmerFciService.listAllReviewingDeals();
+	}
+
+	@Override
+	public List<FarmerFciDeal> listAllReviewingDeals(String farmerIdentityCode) {
+		return null;
+	}
+
+	@Override
+	public List<FarmerFciDeal> getFciActiveDealFromFarmerCode(@PathVariable String farmerIdentityCode) {
+		return farmerFciService.listActiveDealsByFarmerCode(farmerIdentityCode);
+	}
+
+	@Override
+	public void deleteAllFarmerFciDeals(String farmerIdentityCode) {
+		farmerFciService.deleteAllFarmerFciDeals(farmerIdentityCode);
+	}
+
+	@Override
+	public void deleteFarmerFciDeal(String farmerFciDeal) {
+
+	}
+
 }
