@@ -96,6 +96,7 @@ public class FarmerFciServiceImpl implements FarmerFciService {
     @Override
     public Flux<FarmerFciDeal> listActiveDealsByFarmerCode(String farmerIdentityCode) {
 
+        //See difference between merge/concat in test example
         return Flux
                 .merge(farmerFciRepository.findByDealStatusAndFarmerIdentityCode(DealStatus.NEW, farmerIdentityCode),
                         farmerFciRepository.findByDealStatusAndFarmerIdentityCode(DealStatus.REVIEWING, farmerIdentityCode))
@@ -112,10 +113,11 @@ public class FarmerFciServiceImpl implements FarmerFciService {
 
     private void findDealAndThenConsumeData(@NonNull String dealCode, @NonNull Consumer<FarmerFciDealEntity> consumer) {
 
-        Mono<FarmerFciDealEntity> farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
+        Mono<FarmerFciDealEntity> farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Deal Code not found!!! : " + dealCode)));
         farmerFciDealEntity.subscribe(
                 consumer,
-                error -> log.error("Error while finding deal -->" + error.getMessage()),
+                error -> log.error("Error while finding deal : {} : ERROR --> {}", dealCode, error.getMessage()),
                 () -> log.info("Completed Find Deal Task!"));
     }
 }

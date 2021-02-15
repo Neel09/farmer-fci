@@ -3,8 +3,8 @@ package org.jai.kissan.reactive.examples;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
 
 @Slf4j
 public class MainClass {
@@ -115,7 +115,7 @@ public class MainClass {
         //An Example of supporting Segments
         //Execution happens in parallel but onNext calls happens in sequence, as per specification
         //It affects the context of source emission
-        Scheduler scheduler = Schedulers.parallel();
+        /*Scheduler scheduler = Schedulers.parallel();
         final Flux<String> flux = Flux
                 .range(1, 5)
                 .map(i -> {
@@ -130,11 +130,64 @@ public class MainClass {
 
         flux.subscribe(i -> System.out.println("Scheduler A : " + Thread.currentThread().getName() + " : " + i));
         flux.subscribe(i -> System.out.println("Scheduler B : " + Thread.currentThread().getName() + " : " + i));
-        Thread.sleep(1000);
+        Thread.sleep(1000);*/
+
+        flux_merge_concat_zip();
     }
 
-    private static void usingIteration_Block() {
+    private static void flux_merge_concat_zip() throws InterruptedException {
 
+        Flux<Integer> fluxIntegers1 = Flux.range(1, 5);
+        Flux<Integer> fluxIntegers2 = Flux.range(6, 5);
+
+        /*//Using Merge --> Sequential elements are not guaranteed. Also, it is subscribed to publisher eagerly
+        System.out.println(Flux.merge(fluxIntegers1.delayElements(Duration.ofMillis(500))
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))).log().subscribe(i -> {
+            System.out.println("Merge : " + Thread.currentThread() + " Value : " + i);
+        }));*/
+
+        System.out.println("------------------------");
+
+        //Using Concat --> Sequential elements is guaranteed. as second will start once first is completed
+        //Lazy Subscription
+        /*Flux.concat(fluxIntegers1.delayElements(Duration.ofMillis(500))
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))).log().subscribe(i -> {
+            System.out.println("Concat : " + Thread.currentThread() + " Value : " + i);
+        });*/
+
+        //Using Merge --> Sequential elements are not guaranteed
+        /*Flux.merge(fluxIntegers1.delayElements(Duration.ofMillis(500)).map(i -> {
+                    if (i > 3) throw new RuntimeException("Error!!");
+                    return i;
+                })
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))).subscribe(i -> {
+            System.out.println("Merge : " + Thread.currentThread() + " Value : " + i);
+        });*/
+
+        //Using Zip --> It emits single element at a time from each producer then combines elements.
+        /*Flux.zip(fluxIntegers1.delayElements(Duration.ofMillis(500))
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))).subscribe(i -> {
+            System.out.println("Zip : " + Thread.currentThread() + " Value : " + i);
+        });*/
+
+        //Using Zip --> It emits single element at a time from each producer then combines elements.
+        Flux.zip(fluxIntegers1.delayElements(Duration.ofMillis(500))
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))
+                , (a, b) -> a + b).subscribe(i -> {
+            System.out.println("Zip : " + Thread.currentThread() + " Value : " + i);
+        });
+
+        /*
+        //Using Concat --> Sequential elements is guaranteed. as second will start once first is completed
+        Flux.concat(fluxIntegers1.delayElements(Duration.ofMillis(500)).map(i -> {
+                    if (i > 3) throw new RuntimeException("Error!!");
+                    return i;
+                })
+                , fluxIntegers2.delayElements(Duration.ofMillis(1000))).log().subscribe(i -> {
+            System.out.println("Concat : " + Thread.currentThread() + " Value : " + i);
+        });*/
+
+        Thread.sleep(10000);
     }
 
     private static void usingStreams_Block() {
