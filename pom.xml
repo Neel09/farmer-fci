@@ -12,7 +12,7 @@
 
 	<groupId>org.jai.kissan</groupId>
 	<artifactId>farmer-fci</artifactId>
-	<version>2.0-SNAPSHOT</version>
+	<version>2.0.0-RELEASE</version>
 	<name>farmer-fci</name>
 	<description>Jai Kissan project</description>
 
@@ -20,8 +20,8 @@
 		<java.version>11</java.version>
 		<lombok.version>1.18.16</lombok.version>
 		<mapstruct.version>1.4.2.Final</mapstruct.version>
-		<jai.kissan.common.version>2.0-SNAPSHOT</jai.kissan.common.version>
-		<jai.kissan.api.version>2.0-SNAPSHOT</jai.kissan.api.version>
+		<jai.kissan.common.version>2.0.0-SNAPSHOT</jai.kissan.common.version>
+		<jai.kissan.api.version>2.0.0-RELEASE</jai.kissan.api.version>
 		<maven.compiler.version>3.8.1</maven.compiler.version>
 	</properties>
 
