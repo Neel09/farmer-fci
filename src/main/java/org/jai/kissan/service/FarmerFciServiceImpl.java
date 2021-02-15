@@ -1,91 +1,121 @@
 package org.jai.kissan.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.jai.kissan.api.farmer.fci.model.DealStatus;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jai.kissan.api.farmer.fci.model.FarmerFciDeal;
 import org.jai.kissan.mapper.FarmerFciMapper;
+import org.jai.kissan.persistence.entities.DealStatus;
 import org.jai.kissan.persistence.entities.FarmerFciDealEntity;
 import org.jai.kissan.persistence.repositories.FarmerFciRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.LocalDateTime;
+import java.util.function.Consumer;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class FarmerFciServiceImpl implements FarmerFciService {
 
-	private final FarmerFciRepository farmerFciRepository;
-	private final FarmerFciMapper farmerFciMapper;
+    private final FarmerFciRepository farmerFciRepository;
+    private final FarmerFciMapper farmerFciMapper;
 
-	@Autowired
-	public FarmerFciServiceImpl(FarmerFciRepository farmerFciRepository, FarmerFciMapper farmerFciMapper) {
-		this.farmerFciRepository = farmerFciRepository;
-		this.farmerFciMapper = farmerFciMapper;
-	}
+    @Override
+    public Mono<FarmerFciDeal> createDeal(FarmerFciDeal farmerFciDeal) {
 
-	@Override
-	public String createDeal(FarmerFciDeal farmerFciDeal) {
-		// ToDo: Get MSP rate from other service
-		farmerFciDeal.setMspRate(100.0);
-		farmerFciDeal.setDealCreatingDate(LocalDateTime.now());
-		farmerFciDeal.setDealStatus(DealStatus.NEW);
-		FarmerFciDealEntity farmerFciDealEntity = farmerFciRepository
-				.save(farmerFciMapper.apiModelToEntityMapper(farmerFciDeal));
-		return farmerFciDealEntity.getDealIdentityCode();
-	}
+        return Mono.defer(() -> {
+            // ToDo: Get MSP rate from other service
+            farmerFciDeal.setMspRate(100.0);
+            farmerFciDeal.setDealCreatingDate(LocalDateTime.now());
+            farmerFciDeal.setDealStatus(org.jai.kissan.api.farmer.fci.model.DealStatus.NEW);
+            FarmerFciDealEntity dealEntity = farmerFciMapper.apiModelToEntityMapper(farmerFciDeal);
 
-	@Override
-	public String buyDeal(String dealCode, Double buyingRate) {
-		FarmerFciDealEntity farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
-		farmerFciDealEntity.setBuyingRate(buyingRate);
-		farmerFciDealEntity.setDealStatus(org.jai.kissan.persistence.entities.DealStatus.COMPLETED);
-		farmerFciDealEntity.setDealClosingDate(LocalDateTime.now());
-		return farmerFciRepository.save(farmerFciDealEntity).getDealIdentityCode();
-	}
+            return farmerFciRepository.save(dealEntity).map(farmerFciMapper::entityToApiModelMapper);
+        });
+    }
 
-	@Override
-	public String updateQuantityInDeal(String dealCode, Double quantity) {
-		FarmerFciDealEntity farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
-		farmerFciDealEntity.setBuyingQuantity(quantity);
-		farmerFciDealEntity.setDealLastUpdatingDate(LocalDateTime.now());
-		farmerFciRepository.save(farmerFciDealEntity);
-		return "Done";
-	}
+    @Override
+    public void buyDeal(String dealCode, Double buyingRate) {
 
-	@Override
-	public String updateDealStatusToReview(String dealCode) {
-		FarmerFciDealEntity farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
-		farmerFciDealEntity.setDealStatus(org.jai.kissan.persistence.entities.DealStatus.REVIEWING);
-		farmerFciRepository.save(farmerFciDealEntity);
-		return "Done";
-	}
+        findDealAndThenConsumeData(dealCode, (entity) -> {
+            // Setting values
+            entity.setBuyingRate(buyingRate);
+            entity.setDealStatus(DealStatus.COMPLETED);
+            entity.setDealClosingDate(LocalDateTime.now());
 
-	@Override
-	public List<FarmerFciDeal> listAllNewDeals() {
-		List<FarmerFciDealEntity> fciDealEntities = farmerFciRepository
-				.findByDealStatus(org.jai.kissan.persistence.entities.DealStatus.NEW);
-		return farmerFciMapper.entityToApiModelMapper(fciDealEntities);
-	}
+            // Save data
+            farmerFciRepository.save(entity).subscribe(
+                    updatedEntity -> log.info("Deal updated successfully!! " + updatedEntity.getDealIdentityCode()),
+                    error -> log.error("Error while buyingDeal!!" + error.getMessage()),
+                    () -> log.info("Completed Save Task!"));
+        });
+    }
 
-	@Override
-	public List<FarmerFciDeal> listAllReviewingDeals() {
-		List<FarmerFciDealEntity> fciDealEntities = farmerFciRepository
-				.findByDealStatus(org.jai.kissan.persistence.entities.DealStatus.REVIEWING);
-		return farmerFciMapper.entityToApiModelMapper(fciDealEntities);
-	}
+    @Override
+    public void updateQuantityInDeal(String dealCode, final Double quantity) {
 
-	@Override
-	public List<FarmerFciDeal> listActiveDealsByFarmerCode(String farmerIdentityCode) {
-		List<FarmerFciDealEntity> activeDeals = farmerFciRepository.findByDealStatusAndFarmerIdentityCode(
-				org.jai.kissan.persistence.entities.DealStatus.NEW, farmerIdentityCode);
-		activeDeals.addAll(farmerFciRepository.findByDealStatusAndFarmerIdentityCode(
-				org.jai.kissan.persistence.entities.DealStatus.REVIEWING, farmerIdentityCode));
-		return farmerFciMapper.entityToApiModelMapper(activeDeals);
-	}
+        findDealAndThenConsumeData(dealCode, (entity) -> {
+            entity.setBuyingQuantity(quantity);
+            entity.setDealLastUpdatingDate(LocalDateTime.now());
+            // Save data
+            farmerFciRepository.save(entity).log().subscribe(
+                    updatedEntity -> log.info("Deal updated successfully!! " + updatedEntity.getDealIdentityCode()),
+                    error -> log.error("Error while updating quantity in deal !! " + error.getMessage()),
+                    () -> log.info("Completed Save Task!"));
+        });
+    }
 
-	@Override
-	public void deleteAllFarmerFciDeals(String farmerIdentityCode) {
-		farmerFciRepository.deleteByFarmerIdentityCode(farmerIdentityCode);
-	}
+    @Override
+    public void updateDealStatusToReview(String dealCode) {
+        Mono<FarmerFciDealEntity> farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
 
+        findDealAndThenConsumeData(dealCode, (entity) -> {
+            entity.setDealStatus(DealStatus.REVIEWING);
+            // Save data
+            farmerFciRepository.save(entity).subscribe(
+                    updatedEntity -> log.info("Deal status updated successfully!! " + updatedEntity.getDealIdentityCode()),
+                    error -> log.error("Error while updating status in deal !! " + error.getMessage()),
+                    () -> log.info("Completed Save Task!"));
+        });
+    }
+
+    @Override
+    public Flux<FarmerFciDeal> listAllNewDeals() {
+        return farmerFciRepository.findByDealStatus(DealStatus.NEW).map(farmerFciMapper::entityToApiModelMapper);
+    }
+
+    @Override
+    public Flux<FarmerFciDeal> listAllReviewingDeals() {
+        return farmerFciRepository.findByDealStatus(DealStatus.REVIEWING).map(farmerFciMapper::entityToApiModelMapper);
+    }
+
+    @Override
+    public Flux<FarmerFciDeal> listActiveDealsByFarmerCode(String farmerIdentityCode) {
+
+        return Flux
+                .merge(farmerFciRepository.findByDealStatusAndFarmerIdentityCode(DealStatus.NEW, farmerIdentityCode),
+                        farmerFciRepository.findByDealStatusAndFarmerIdentityCode(DealStatus.REVIEWING, farmerIdentityCode))
+                .map(farmerFciMapper::entityToApiModelMapper);
+    }
+
+    @Override
+    public void deleteAllFarmerFciDeals(String farmerIdentityCode) {
+        farmerFciRepository.deleteByFarmerIdentityCode(farmerIdentityCode)
+                .log(Thread.currentThread().toString())
+                .subscribeOn(Schedulers.single())
+                .log(Thread.currentThread().toString()).subscribe();
+    }
+
+    private void findDealAndThenConsumeData(@NonNull String dealCode, @NonNull Consumer<FarmerFciDealEntity> consumer) {
+
+        Mono<FarmerFciDealEntity> farmerFciDealEntity = farmerFciRepository.findByDealIdentityCode(dealCode);
+        farmerFciDealEntity.subscribe(
+                consumer,
+                error -> log.error("Error while finding deal -->" + error.getMessage()),
+                () -> log.info("Completed Find Deal Task!"));
+    }
 }

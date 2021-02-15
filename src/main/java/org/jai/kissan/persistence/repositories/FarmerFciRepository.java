@@ -2,17 +2,18 @@ package org.jai.kissan.persistence.repositories;
 
 import org.jai.kissan.persistence.entities.DealStatus;
 import org.jai.kissan.persistence.entities.FarmerFciDealEntity;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-public interface FarmerFciRepository extends CrudRepository<FarmerFciDealEntity, String> {
+public interface FarmerFciRepository extends ReactiveMongoRepository<FarmerFciDealEntity, String> {
 
-	FarmerFciDealEntity findByDealIdentityCode(String dealIdentityCode);
+	Mono<FarmerFciDealEntity> findByDealIdentityCode(String dealIdentityCode);
 
-	List<FarmerFciDealEntity> findByDealStatus(DealStatus dealStatus);
+	Flux<FarmerFciDealEntity> findByDealStatus(DealStatus dealStatus);
 
-	List<FarmerFciDealEntity> findByDealStatusAndFarmerIdentityCode(DealStatus dealStatus, String farmerIdentityCode);
+	Flux<FarmerFciDealEntity> findByDealStatusAndFarmerIdentityCode(DealStatus dealStatus, String farmerIdentityCode);
 
-	void deleteByFarmerIdentityCode(String farmerIdentityCode);
+	Flux<FarmerFciDealEntity> deleteByFarmerIdentityCode(String farmerIdentityCode);
 }
