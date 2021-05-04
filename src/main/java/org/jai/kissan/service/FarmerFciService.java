@@ -18,17 +18,27 @@ public interface FarmerFciService {
 	 * @param buyingRate
 	 * @return
 	 */
-	void buyDeal(String dealCode, Double buyingRate);
+	Mono<Void> buyDeal(String dealCode, Double buyingRate);
 
 	void updateQuantityInDeal(String dealCode, Double quantity);
 
-	void updateDealStatusToReview(String dealCode);
+	Mono<Void> updateDealStatusToReview(String dealCode);
 
 	Flux<FarmerFciDeal> listAllNewDeals();
 
 	Flux<FarmerFciDeal> listAllReviewingDeals();
 
-	Flux<FarmerFciDeal> listActiveDealsByFarmerCode(String farmerIdentityCode);
+	Flux<FarmerFciDeal> listFarmerActiveDeals(String farmerIdentityCode);
 
-	void deleteAllFarmerFciDeals(String farmerIdentityCode);
+	Flux<FarmerFciDeal> listFarmerNewDeals(String farmerIdentityCode);
+
+	Flux<FarmerFciDeal> listFarmerReviewingDeals(String farmerIdentityCode);
+
+	Flux<FarmerFciDeal> listFarmerCompletedDeals(String farmerIdentityCode);
+
+	Flux<FarmerFciDeal> listFarmerAllDeals(String farmerIdentityCode);
+
+	Mono<Void> deleteAllFarmerFciDeals(String farmerIdentityCode);
+
+	Mono<Void> deleteFarmerFciDeal(String farmerFciDeal);
 }

@@ -11,9 +11,15 @@ public interface FarmerFciRepository extends ReactiveMongoRepository<FarmerFciDe
 
 	Mono<FarmerFciDealEntity> findByDealIdentityCode(String dealIdentityCode);
 
+	Mono<FarmerFciDealEntity> findByDealIdentityCodeAndDealStatusNot(String dealIdentityCode, DealStatus dealStatus);
+
 	Flux<FarmerFciDealEntity> findByDealStatus(DealStatus dealStatus);
 
 	Flux<FarmerFciDealEntity> findByDealStatusAndFarmerIdentityCode(DealStatus dealStatus, String farmerIdentityCode);
 
-	Flux<FarmerFciDealEntity> deleteByFarmerIdentityCode(String farmerIdentityCode);
+	Flux<FarmerFciDealEntity> findByFarmerIdentityCode(String farmerIdentityCode);
+
+	Mono<Void> deleteByFarmerIdentityCode(String farmerIdentityCode);
+
+	Mono<Void> deleteByDealIdentityCode(String dealIdentityCode);
 }
